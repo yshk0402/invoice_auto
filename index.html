@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Auto Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Expense Submission PoC</p>
+        <h1 id="app-title">Invoice Auto Demo</h1>
+        <p id="hero-copy" class="hero-copy"></p>
+      </header>
+
+      <main id="main" class="main-grid">
+        <section class="phone-stage" aria-labelledby="flow-title">
+          <div class="phone-frame">
+            <div class="phone-header">
+              <h2 id="flow-title">Mobile Flow</h2>
+              <button id="logout-button" class="ghost-button" type="button"></button>
+            </div>
+
+            <div id="status-banner" class="status-banner" aria-live="polite"></div>
+
+            <section id="screen-login" class="screen" aria-labelledby="login-title">
+              <h3 id="login-title"></h3>
+              <p id="login-copy" class="screen-copy"></p>
+
+              <form id="login-form" class="stack" novalidate>
+                <div class="field">
+                  <label for="language-select" id="language-label"></label>
+                  <select id="language-select" name="language"></select>
+                </div>
+
+                <div class="field">
+                  <label for="employee-id" id="employee-label"></label>
+                  <input id="employee-id" name="employeeId" autocomplete="username" />
+                </div>
+
+                <div class="field">
+                  <label for="password" id="password-label"></label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                  />
+                </div>
+
+                <button id="login-submit" class="primary-button" type="submit"></button>
+              </form>
+
+              <section class="hint-card" aria-labelledby="demo-account-title">
+                <h4 id="demo-account-title"></h4>
+                <ul id="demo-account-list" class="account-list"></ul>
+              </section>
+            </section>
+
+            <section id="screen-camera" class="screen hidden" aria-labelledby="camera-title">
+              <h3 id="camera-title"></h3>
+              <p id="camera-copy" class="screen-copy"></p>
+
+              <form id="camera-form" class="stack" novalidate>
+                <div class="field">
+                  <label for="receipt-file" id="receipt-label"></label>
+                  <input id="receipt-file" name="receiptFile" type="file" accept="image/*" capture="environment" />
+                </div>
+
+                <figure id="preview-card" class="preview-card hidden">
+                  <img id="receipt-preview" alt="" />
+                  <figcaption id="preview-caption"></figcaption>
+                </figure>
+
+                <div class="button-row">
+                  <button id="back-to-login" class="ghost-button" type="button"></button>
+                  <button id="scan-submit" class="primary-button" type="submit" disabled></button>
+                </div>
+              </form>
+            </section>
+
+            <section id="screen-correction" class="screen hidden" aria-labelledby="correction-title">
+              <h3 id="correction-title"></h3>
+              <p id="correction-copy" class="screen-copy"></p>
+
+              <div id="ocr-loading" class="loading-card hidden" aria-live="polite"></div>
+
+              <form id="correction-form" class="stack" novalidate>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="field-date" id="date-label"></label>
+                    <input id="field-date" name="date" type="date" required />
+                  </div>
+
+                  <div class="field">
+                    <label for="field-amount" id="amount-label"></label>
+                    <input id="field-amount" name="amount" type="number" min="1" step="1" required />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="field-merchant" id="merchant-label"></label>
+                  <input id="field-merchant" name="merchant" required />
+                </div>
+
+                <div class="field">
+                  <label for="field-category" id="category-label"></label>
+                  <select id="field-category" name="expenseCategory" required></select>
+                </div>
+
+                <div class="summary-card">
+                  <h4 id="payload-title"></h4>
+                  <dl class="summary-list">
+                    <div>
+                      <dt id="summary-submitter-label"></dt>
+                      <dd id="summary-submitter"></dd>
+                    </div>
+                    <div>
+                      <dt id="summary-language-label"></dt>
+                      <dd id="summary-language"></dd>
+                    </div>
+                    <div>
+                      <dt id="summary-image-label"></dt>
+                      <dd id="summary-image"></dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div class="button-row">
+                  <button id="back-to-camera" class="ghost-button" type="button"></button>
+                  <button id="submit-receipt" class="primary-button" type="submit"></button>
+                </div>
+              </form>
+            </section>
+
+            <section id="screen-success" class="screen hidden" aria-labelledby="success-title">
+              <h3 id="success-title"></h3>
+              <p id="success-copy" class="screen-copy"></p>
+
+              <div class="success-panel">
+                <h4 id="latest-submission-title"></h4>
+                <pre id="latest-submission" class="code-block"></pre>
+              </div>
+
+              <div class="button-row">
+                <button id="submit-another" class="primary-button" type="button"></button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-labelledby="inspector-title">
+          <div class="inspector-card">
+            <div class="inspector-header">
+              <h2 id="inspector-title">PoC Output</h2>
+              <button id="reset-demo" class="ghost-button" type="button"></button>
+            </div>
+            <p id="inspector-copy" class="screen-copy"></p>
+          </div>
+
+          <section class="inspector-card" aria-labelledby="master-title">
+            <h3 id="master-title">Master Sheet</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>employee_id</th>
+                    <th>user_name</th>
+                    <th>role</th>
+                    <th>preferred_language</th>
+                    <th>sheet_tab_name</th>
+                    <th>active</th>
+                  </tr>
+                </thead>
+                <tbody id="master-sheet-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="inspector-card" aria-labelledby="user-tab-title">
+            <h3 id="user-tab-title"></h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>submitted_at</th>
+                    <th>date</th>
+                    <th>merchant</th>
+                    <th>amount</th>
+                    <th>expense_category</th>
+                    <th>receipt_image</th>
+                    <th>submitter</th>
+                    <th>language</th>
+                  </tr>
+                </thead>
+                <tbody id="user-sheet-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
