@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 
+loadEnvFile(path.join(__dirname, ".env"));
+
 const PORT = Number(process.env.PORT || 4173);
 const ROOT = __dirname;
 const RUNTIME_DIR = path.join(ROOT, "runtime");
@@ -10,6 +12,13 @@ const UPLOAD_DIR = path.join(RUNTIME_DIR, "uploads");
 const PER_USER_DIR = path.join(RUNTIME_DIR, "per-user");
 const MASTER_CSV = path.join(RUNTIME_DIR, "master-sheet.csv");
 const SUBMISSIONS_JSON = path.join(RUNTIME_DIR, "submissions.json");
+const GOOGLE_CONFIG = {
+  clientEmail: process.env.GOOGLE_CLIENT_EMAIL || "",
+  privateKey: normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY || ""),
+  spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID || "",
+  driveFolderId: process.env.GOOGLE_DRIVE_FOLDER_ID || "",
+  enabled: process.env.ENABLE_GOOGLE_SYNC === "true",
+};
 
 const DEMO_USERS = [
   { employee_id: "id1", password: "pass1", user_name: "Demo User 1", role: "Employee", preferred_language: "ja", active: "true" },
@@ -18,6 +27,42 @@ const DEMO_USERS = [
   { employee_id: "id4", password: "pass4", user_name: "Demo User 4", role: "ForeignWorker", preferred_language: "vi", active: "true" },
   { employee_id: "id5", password: "pass5", user_name: "Demo User 5", role: "Employee", preferred_language: "ja", active: "true" },
 ].map((user) => ({ ...user, sheet_tab_name: `USER_${user.employee_id}` }));
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const source = fs.readFileSync(filePath, "utf8");
+  for (const rawLine of source.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) continue;
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function normalizePrivateKey(value) {
+  return value.replace(/\\n/g, "\n");
+}
+
+function validateGoogleConfig() {
+  if (!GOOGLE_CONFIG.enabled) return [];
+  const missing = [];
+  if (!GOOGLE_CONFIG.clientEmail) missing.push("GOOGLE_CLIENT_EMAIL");
+  if (!GOOGLE_CONFIG.privateKey) missing.push("GOOGLE_PRIVATE_KEY");
+  if (!GOOGLE_CONFIG.spreadsheetId) missing.push("GOOGLE_SPREADSHEET_ID");
+  if (!GOOGLE_CONFIG.driveFolderId) missing.push("GOOGLE_DRIVE_FOLDER_ID");
+  return missing;
+}
 
 function ensureRuntime() {
   fs.mkdirSync(RUNTIME_DIR, { recursive: true });
@@ -166,12 +211,20 @@ function resetRuntimeData() {
 }
 
 ensureRuntime();
+const googleConfigErrors = validateGoogleConfig();
 
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
 
   if (request.method === "GET" && url.pathname === "/api/bootstrap") {
-    json(response, 200, { users: DEMO_USERS });
+    json(response, 200, {
+      users: DEMO_USERS,
+      googleSync: {
+        enabled: GOOGLE_CONFIG.enabled,
+        ready: googleConfigErrors.length === 0,
+        missing: googleConfigErrors,
+      },
+    });
     return;
   }
 
@@ -272,4 +325,13 @@ const server = http.createServer(async (request, response) => {
 server.listen(PORT, () => {
   console.log(`Invoice Auto demo server running at http://localhost:${PORT}`);
   console.log(`Master Sheet CSV: http://localhost:${PORT}/api/master-sheet.csv`);
+  if (GOOGLE_CONFIG.enabled) {
+    if (googleConfigErrors.length) {
+      console.log(`Google sync config missing: ${googleConfigErrors.join(", ")}`);
+    } else {
+      console.log("Google sync env vars are configured.");
+    }
+  } else {
+    console.log("Google sync disabled. Set ENABLE_GOOGLE_SYNC=true in .env to enable validation.");
+  }
 });

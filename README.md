@@ -20,6 +20,7 @@
 例:
 
 ```bash
+cp .env.example .env
 npm run start
 ```
 
@@ -29,6 +30,19 @@ npm run start
 
 - Master Sheet CSV: `http://localhost:4173/api/master-sheet.csv`
 - Per-user Sheet Tab CSV: `http://localhost:4173/api/per-user/USER_id1.csv`
+
+## Environment Variables
+
+`.env.example` をコピーして `.env` を作成します。
+
+- `PORT`: ローカル起動ポート
+- `ENABLE_GOOGLE_SYNC`: `true` にすると Google 接続用 env の存在を起動時に検証
+- `GOOGLE_CLIENT_EMAIL`: サービスアカウントの client email
+- `GOOGLE_PRIVATE_KEY`: サービスアカウント秘密鍵。改行は `\n` で設定
+- `GOOGLE_SPREADSHEET_ID`: 接続先スプレッドシート ID
+- `GOOGLE_DRIVE_FOLDER_ID`: 接続先 Drive フォルダ ID
+
+現時点では env の受け口とバリデーションのみ実装済みで、実際の Google API 書き込みはまだ未接続です。
 
 ## Demo Accounts
 
