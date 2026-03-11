@@ -2,27 +2,33 @@
 
 外国人派遣事業者向け経費申請SaaS の PoC リポジトリです。
 
-現時点では、要件確定ドキュメントと、ブラウザだけで動く静的デモを含みます。
+現時点では、要件確定ドキュメントと、ローカルサーバー上で動くスマホ向けデモを含みます。
 
 ## Files
 
 - `REQUIREMENTS.md`: 要件定義
 - `TASK.md`: 要件確定と実装準備のバックログ
-- `index.html`: デモ画面
-- `styles.css`: デモ用スタイル
-- `app.js`: デモ用ロジック
+- `index.html`: スマホ用デモ画面
+- `styles.css`: スマホ用スタイル
+- `app.js`: スマホ用ロジック
+- `server.js`: デモサーバー
 
 ## Demo
 
-ビルドは不要です。静的ファイルをそのまま配信すれば動きます。
+ビルドは不要です。Node.js でローカルサーバーを起動します。
 
 例:
 
 ```bash
-python3 -m http.server 4173
+npm run start
 ```
 
-その後、`http://localhost:4173` を開きます。
+その後、スマホまたはブラウザで `http://localhost:4173` を開きます。
+
+管理側の確認用ファイル:
+
+- Master Sheet CSV: `http://localhost:4173/api/master-sheet.csv`
+- Per-user Sheet Tab CSV: `http://localhost:4173/api/per-user/USER_id1.csv`
 
 ## Demo Accounts
 
@@ -40,7 +46,8 @@ python3 -m http.server 4173
   - `OCR Correction / Submit`
 - 多言語切替
 - モック OCR
-- Google スプレッドシート想定データのプレビュー
+- サーバー側への画像保存
+- ユーザー別 CSV 出力
 
 ## Not Yet Connected
 
