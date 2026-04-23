@@ -3,9 +3,9 @@
 
   const TRANSLATIONS = {
     ja: {
-      heroCopy: "スマホからレシートを送信し、サーバー側で CSV と画像として保存するデモです。",
+      heroCopy: "スマホからレシートを送信し、Google Drive と Google スプレッドシートへ保存する PoC です。",
       logout: "ログアウト",
-      statusIdle: "スマホで入力した内容はサーバーに保存されます。",
+      statusIdle: "送信した内容は共有の Google Drive / Google スプレッドシートへ保存されます。",
       loginTitle: "ログイン",
       loginCopy: "社員ID とパスワードでログインします。",
       language: "表示言語",
@@ -32,20 +32,19 @@
       imageRef: "保存ファイル",
       submit: "送信する",
       successTitle: "送信完了",
-      successCopy: "CSV と画像保存まで完了しました。",
+      successCopy: "Google Drive と Google スプレッドシートへの保存が完了しました。",
       latestSubmission: "保存されたデータ",
       submitAnother: "もう 1 件送る",
-      resetDemo: "デモデータ削除",
       loginError: "社員ID またはパスワードが正しくありません。",
       fileRequired: "レシート画像を選択してください。",
       submitSuccess: "提出データを保存しました。",
-      resetSuccess: "デモデータを削除しました。",
       serverError: "サーバー通信に失敗しました。",
+      googleConfigMissing: "Google 連携の設定が不足しています:",
     },
     en: {
-      heroCopy: "This demo lets a smartphone user submit one receipt and saves CSV plus image data on the server.",
+      heroCopy: "This PoC lets a smartphone user submit one receipt and saves it to Google Drive plus Google Sheets.",
       logout: "Log out",
-      statusIdle: "Submitted data is saved on the server.",
+      statusIdle: "Submitted data is saved to shared Google Drive and Google Sheets.",
       loginTitle: "Login",
       loginCopy: "Sign in with employee ID and password.",
       language: "Language",
@@ -72,20 +71,19 @@
       imageRef: "Saved file",
       submit: "Submit",
       successTitle: "Submitted",
-      successCopy: "CSV and image save completed.",
+      successCopy: "Saved to Google Drive and Google Sheets.",
       latestSubmission: "Saved payload",
       submitAnother: "Submit another",
-      resetDemo: "Clear demo data",
       loginError: "Employee ID or password is incorrect.",
       fileRequired: "Choose a receipt image first.",
       submitSuccess: "Submission saved.",
-      resetSuccess: "Demo data cleared.",
       serverError: "Server request failed.",
+      googleConfigMissing: "Google integration is missing configuration:",
     },
     zh: {
-      heroCopy: "该演示支持手机提交单张收据，并在服务器端保存 CSV 与图片。",
+      heroCopy: "该 PoC 支持手机提交单张收据，并保存到 Google Drive 与 Google 表格。",
       logout: "退出登录",
-      statusIdle: "提交数据会保存在服务器上。",
+      statusIdle: "提交数据会保存到共享的 Google Drive 和 Google 表格。",
       loginTitle: "登录",
       loginCopy: "使用员工ID和密码登录。",
       language: "语言",
@@ -112,20 +110,19 @@
       imageRef: "保存文件",
       submit: "提交",
       successTitle: "提交完成",
-      successCopy: "CSV 和图片保存已完成。",
+      successCopy: "已完成 Google Drive 和 Google 表格保存。",
       latestSubmission: "已保存数据",
       submitAnother: "再提交一张",
-      resetDemo: "清空演示数据",
       loginError: "员工ID或密码不正确。",
       fileRequired: "请先选择收据图片。",
       submitSuccess: "提交数据已保存。",
-      resetSuccess: "演示数据已清空。",
       serverError: "服务器请求失败。",
+      googleConfigMissing: "Google 集成缺少以下配置：",
     },
     vi: {
-      heroCopy: "Demo này cho phép người dùng trên điện thoại gửi một hóa đơn và lưu CSV cùng ảnh trên máy chủ.",
+      heroCopy: "PoC này cho phép người dùng trên điện thoại gửi một hóa đơn và lưu vào Google Drive cùng Google Sheets.",
       logout: "Đăng xuất",
-      statusIdle: "Dữ liệu gửi sẽ được lưu trên máy chủ.",
+      statusIdle: "Dữ liệu gửi sẽ được lưu vào Google Drive và Google Sheets dùng chung.",
       loginTitle: "Đăng nhập",
       loginCopy: "Đăng nhập bằng mã nhân viên và mật khẩu.",
       language: "Ngôn ngữ",
@@ -152,15 +149,14 @@
       imageRef: "Tệp đã lưu",
       submit: "Gửi",
       successTitle: "Đã gửi",
-      successCopy: "Đã lưu xong CSV và ảnh.",
+      successCopy: "Đã lưu vào Google Drive và Google Sheets.",
       latestSubmission: "Dữ liệu đã lưu",
       submitAnother: "Gửi thêm",
-      resetDemo: "Xóa dữ liệu demo",
       loginError: "Mã nhân viên hoặc mật khẩu không đúng.",
       fileRequired: "Hãy chọn ảnh hóa đơn trước.",
       submitSuccess: "Đã lưu dữ liệu gửi.",
-      resetSuccess: "Đã xóa dữ liệu demo.",
       serverError: "Yêu cầu tới máy chủ thất bại.",
+      googleConfigMissing: "Thiếu cấu hình cho tích hợp Google:",
     },
   };
 
@@ -214,7 +210,6 @@
     latestSubmissionTitle: document.getElementById("latest-submission-title"),
     latestSubmission: document.getElementById("latest-submission"),
     submitAnother: document.getElementById("submit-another"),
-    resetDemo: document.getElementById("reset-demo"),
     screens: {
       login: document.getElementById("screen-login"),
       camera: document.getElementById("screen-camera"),
@@ -229,6 +224,7 @@
     selectedFile: null,
     selectedImageUrl: "",
     latestSubmission: null,
+    googleSync: null,
     users: [],
   };
 
@@ -244,6 +240,15 @@
   function setStatus(message, kind) {
     ui.statusBanner.textContent = message;
     ui.statusBanner.classList.toggle("error", kind === "error");
+  }
+
+  function refreshStatus() {
+    if (state.googleSync && !state.googleSync.ready) {
+      setStatus(`${t("googleConfigMissing")} ${state.googleSync.missing.join(", ")}`, "error");
+      return;
+    }
+
+    setStatus(t("statusIdle"));
   }
 
   function showScreen(name) {
@@ -327,14 +332,19 @@
     ui.successCopy.textContent = t("successCopy");
     ui.latestSubmissionTitle.textContent = t("latestSubmission");
     ui.submitAnother.textContent = t("submitAnother");
-    ui.resetDemo.textContent = t("resetDemo");
   }
 
-  function syncCorrectionSummary(savedPath) {
+  function receiptImageSummary(receiptImage) {
+    if (!receiptImage) return "-";
+    if (typeof receiptImage === "string") return receiptImage;
+    return receiptImage.view_url || receiptImage.file_name || receiptImage.file_id || "-";
+  }
+
+  function syncCorrectionSummary(receiptImage) {
     if (!state.currentUser) return;
     ui.summarySubmitter.textContent = state.currentUser.employee_id;
     ui.summaryLanguage.textContent = state.language;
-    ui.summaryImage.textContent = savedPath || (state.selectedFile ? state.selectedFile.name : "-");
+    ui.summaryImage.textContent = receiptImageSummary(receiptImage || (state.selectedFile ? state.selectedFile.name : ""));
   }
 
   function renderLatestSubmission() {
@@ -396,7 +406,7 @@
   ui.languageSelect.addEventListener("change", (event) => {
     state.language = event.target.value;
     renderStaticText();
-    setStatus(t("statusIdle"));
+    refreshStatus();
   });
 
   document.getElementById("login-form").addEventListener("submit", async (event) => {
@@ -412,7 +422,7 @@
       });
       state.currentUser = result.user;
       ui.logoutButton.classList.remove("hidden");
-      setStatus(t("statusIdle"));
+      refreshStatus();
       showScreen("camera");
     } catch (error) {
       setStatus(error.message === "invalid_credentials" ? t("loginError") : t("serverError"), "error");
@@ -453,7 +463,7 @@
     syncCorrectionSummary(state.selectedFile.name);
     ui.ocrLoading.classList.add("hidden");
     ui.correctionForm.classList.remove("hidden");
-    setStatus(t("statusIdle"));
+    refreshStatus();
   });
 
   ui.correctionForm.addEventListener("submit", async (event) => {
@@ -488,46 +498,35 @@
 
   ui.backToLogin.addEventListener("click", () => {
     resetFlow(false);
-    setStatus(t("statusIdle"));
+    refreshStatus();
   });
 
   ui.backToCamera.addEventListener("click", () => {
     showScreen("camera");
-    setStatus(t("statusIdle"));
+    refreshStatus();
   });
 
   ui.submitAnother.addEventListener("click", () => {
     resetFlow(true);
-    setStatus(t("statusIdle"));
+    refreshStatus();
   });
 
   ui.logoutButton.addEventListener("click", () => {
     resetFlow(false);
-    setStatus(t("statusIdle"));
-  });
-
-  ui.resetDemo.addEventListener("click", async () => {
-    try {
-      await fetchJson("/api/reset", { method: "POST" });
-      state.latestSubmission = null;
-      renderLatestSubmission();
-      resetFlow(true);
-      setStatus(t("resetSuccess"));
-    } catch {
-      setStatus(t("serverError"), "error");
-    }
+    refreshStatus();
   });
 
   async function bootstrap() {
     try {
       const result = await fetchJson("/api/bootstrap");
       state.users = result.users;
+      state.googleSync = result.googleSync || null;
       renderLanguageOptions();
       renderCategoryOptions();
       renderAccounts();
       renderStaticText();
       renderLatestSubmission();
-      setStatus(t("statusIdle"));
+      refreshStatus();
     } catch {
       renderLanguageOptions();
       renderCategoryOptions();

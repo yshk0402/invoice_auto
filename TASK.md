@@ -55,6 +55,12 @@
   - 2026-03-12 確定: PoC は固定 5 アカウント前提、サインアップと再設定は対象外。追加発行と再発行は未確定のまま実装対象外とする。
 - [x] T-3005 監査ログとアクセス管理の設計観点を整理する。Trace: REQUIREMENTS §7 / CR-05
   - 2026-03-12 確定: 監査ログは `CR-05` 解消まで契約機能として実装しない。アクセス管理は Google Drive / Google スプレッドシートの共有権限前提とする。
+- [x] T-3006 Vercel 公開PoC向けに、ローカル常駐サーバー依存を排除し、Serverless Function 構成へ置き換える。 Trace: REQUIREMENTS §4, §7 / CR-04
+  - 2026-04-23 対応: `GET /api/bootstrap` `POST /api/login` `POST /api/submit` の最小 API に整理し、`runtime/` へのローカル保存を廃止。
+- [x] T-3007 Google Drive / Google スプレッドシート実保存を、共有PoC向けの最小契約で接続する。 Trace: REQUIREMENTS §5.1, §6.1, §6.2, §7 / CR-01, CR-04
+  - 2026-04-23 対応: 画像は Google Drive フォルダへ保存し、提出データは `Master Sheet` 参照の上で `USER_<社員ID>` タブへ追記する。
+- [x] T-3008 共有PoCで危険な公開リセット導線を外す。 Trace: REQUIREMENTS §4 / AGENTS §1, §4
+  - 2026-04-23 対応: `POST /api/reset` と「デモデータ削除」UI を削除。
 
 ## 4. Phase 4: 実装準備と受入条件整理
 

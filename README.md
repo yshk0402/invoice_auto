@@ -2,7 +2,7 @@
 
 外国人派遣事業者向け経費申請SaaS の PoC リポジトリです。
 
-現時点では、要件確定ドキュメントと、ローカルサーバー上で動くスマホ向けデモを含みます。
+現時点では、要件確定ドキュメントと、Vercel で公開できるスマホ向け PoC を含みます。
 
 ## Files
 
@@ -11,38 +11,53 @@
 - `index.html`: スマホ用デモ画面
 - `styles.css`: スマホ用スタイル
 - `app.js`: スマホ用ロジック
-- `server.js`: デモサーバー
+- `api/`: Vercel Serverless Functions
+- `lib/`: API 共通ロジック
 
-## Demo
+## Vercel Deploy
 
-ビルドは不要です。Node.js でローカルサーバーを起動します。
+ビルドは不要です。静的ファイルと `api/` をそのまま Vercel へデプロイします。
 
-例:
+1. Google 側の準備を行います。
+   - Google Drive の保存先フォルダを作成する
+   - Google スプレッドシートを用意し、`Master Sheet` と `USER_<社員ID>` タブを作成する
+   - サービスアカウントを作成し、対象の Drive フォルダとスプレッドシートへ編集権限を付与する
+2. Vercel に次の環境変数を設定します。
+   - `GOOGLE_CLIENT_EMAIL`
+   - `GOOGLE_PRIVATE_KEY`
+   - `GOOGLE_SPREADSHEET_ID`
+   - `GOOGLE_DRIVE_FOLDER_ID`
+3. Vercel へデプロイします。
 
 ```bash
-cp .env.example .env
-npm run start
+npx vercel
 ```
 
-その後、スマホまたはブラウザで `http://localhost:4173` を開きます。
+本番反映する場合:
 
-管理側の確認用ファイル:
+```bash
+npx vercel --prod
+```
 
-- Master Sheet CSV: `http://localhost:4173/api/master-sheet.csv`
-- Per-user Sheet Tab CSV: `http://localhost:4173/api/per-user/USER_id1.csv`
+ローカルで Vercel と同じ実行方式を確認する場合:
+
+```bash
+cp .env.example .env.local
+npx vercel dev
+```
+
+その後、ブラウザで表示されたローカル URL を開きます。
 
 ## Environment Variables
 
-`.env.example` をコピーして `.env` を作成します。
+`.env.example` をコピーして `.env.local` を作成します。
 
-- `PORT`: ローカル起動ポート
-- `ENABLE_GOOGLE_SYNC`: `true` にすると Google 接続用 env の存在を起動時に検証
 - `GOOGLE_CLIENT_EMAIL`: サービスアカウントの client email
 - `GOOGLE_PRIVATE_KEY`: サービスアカウント秘密鍵。改行は `\n` で設定
 - `GOOGLE_SPREADSHEET_ID`: 接続先スプレッドシート ID
 - `GOOGLE_DRIVE_FOLDER_ID`: 接続先 Drive フォルダ ID
 
-現時点では env の受け口とバリデーションのみ実装済みで、実際の Google API 書き込みはまだ未接続です。
+起動時の `GET /api/bootstrap` は、Google 接続設定が不足していても 500 ではなく不足項目を返します。
 
 ## Demo Accounts
 
@@ -60,12 +75,30 @@ npm run start
   - `OCR Correction / Submit`
 - 多言語切替
 - モック OCR
-- サーバー側への画像保存
-- ユーザー別 CSV 出力
+- Google Drive への画像保存
+- Google スプレッドシートの `USER_<社員ID>` タブへの追記
+
+## Google Sheet Expectations
+
+- `Master Sheet` の列:
+  - `employee_id`
+  - `user_name`
+  - `role`
+  - `preferred_language`
+  - `sheet_tab_name`
+  - `active`
+- `Per-user Sheet Tab` の列:
+  - `submitted_at`
+  - `date`
+  - `merchant`
+  - `amount`
+  - `expense_category`
+  - `receipt_image`
+  - `submitter`
+  - `language`
 
 ## Not Yet Connected
 
-- Google Drive 実保存
-- Google スプレッドシート実連携
 - 本番認証基盤
 - OCR ベンダー実接続
+- 監査ログ
